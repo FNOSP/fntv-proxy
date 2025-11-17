@@ -1,9 +1,13 @@
 # fnTv-vlcProxy
 
-## 📖 简介
+## 📖 项目简介
 　　这是一个用Go语言编写的第三方飞牛影视客户端fntv-client-multiplatform项目的VLC播放器代理桥接程序，程序充当代理角色，同时兼容飞牛影视的HTTP及HTTPS连接请求，用于解决调用VLC播放器连接飞牛影视服务器时不能传递如cookie等自定义请求头的问题。
 
 　　第三方跨平台飞牛影视客户端项目地址：[fntv-client-multiplatform](https://github.com/FNOSP/fntv-client-multiplatform)
+
+## 🌟 开源声明
+
+　　本项目开源，希望能为开发者们搭建超棒且友好的社区氛围，为你的开发之路加满灵感 buff～ 若你刚好有类似开发需求，想要学习或使用本项目，记得遵守开源社区规范，fork+star 本项目安排上，一起玩转开发呀～
 
 ## ✨ 功能特点
 
@@ -50,6 +54,14 @@ go build -o vlc-proxy
 curl -X POST -d "url=http://192.168.1.200:5666&cookie=Trim-MC-token=2a075b3438764b4da9e772c66a759548; lastLoginUsername=admin" http://127.0.0.1:1999/proxyInfo
 ```
 
+### 👁 获取代理参数
+发送Get请求到`/proxyGet`接口
+
+示例：
+```bash
+curl http://127.0.0.1:1999/proxyGet
+```
+
 ### 📺 VLC播放设置
 
 在VLC中设置播放地址为本地代理服务地址，例如：
@@ -66,7 +78,8 @@ http://192.168.1.200:5666/v/media/ac611442ed3fb17daa73e71bc1268d02/preset.m3u8
 
 ## ⚠️ 注意事项
 
-- 本程序仅用于适配飞牛影视服务的VLC播放器代理，其他影视服务器不支持！
-- 确保目标服务器地址正确且可访问
+- 本程序仅用于适配第三方飞牛影视客户端fntv-client-multiplatform项目连接飞牛影视服务的VLC播放器代理桥接
+- 其他影视客户端不支持，如有需要请参照原客户端项目逻辑进行调用
+- 确保目标飞牛影视服务器地址正确且可以直接访问（不支持基于FN Connect服务地址的飞牛影视服务）
 - Cookie信息需要完整，包括所有必要的键值对
 - 程序会保留原始请求的大部分HTTP头部信息（除Host外）
