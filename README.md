@@ -57,7 +57,7 @@ http://127.0.0.1:1999/v/media/ac611442ed3fb17daa73e71bc1268d02/preset.m3u8
 
 程序会自动将请求转发到目标服务器：
 ```
-http://192.168.1.254:9666/v/media/ac611442ed3fb17daa73e71bc1268d02/preset.m3u8
+http://192.168.1.200:5666/v/media/ac611442ed3fb17daa73e71bc1268d02/preset.m3u8
 ```
 
 并添加预设的Cookie信息。
