@@ -1,7 +1,9 @@
 # fnTv-vlcProxy
 
 ## 📖 简介
-　　这是一个用Go语言编写的VLC播放地址转换服务，用于解决连接影视服务器时不能传递自定义请求头（如cookie）的问题。程序充当代理角色，同时兼容HTTP及HTTPS连接请求。
+　　这是一个用Go语言编写的第三方飞牛影视客户端fntv-client-multiplatform项目的VLC播放器代理桥接程序，程序充当代理角色，同时兼容飞牛影视的HTTP及HTTPS连接请求，用于解决调用VLC播放器连接飞牛影视服务器时不能传递如cookie等自定义请求头的问题。
+
+　　第三方跨平台飞牛影视客户端项目地址：[fntv-client-multiplatform](https://github.com/FNOSP/fntv-client-multiplatform)
 
 ## ✨ 功能特点
 
