@@ -44,6 +44,7 @@ func main() {
 	mux := http.NewServeMux()
 
 	// 设置路由
+	mux.HandleFunc("/proxyInfo", handleProxyInfo)
 	mux.HandleFunc("/proxyGet", handleProxyGet)
 	mux.HandleFunc("/", handleVLCRequest)
 
@@ -91,6 +92,39 @@ func createDefaultConfig(filename string) error {
 	cfg := ini.Empty()
 	cfg.Section("server").Key("port").SetValue("1999")
 	return cfg.SaveTo(filename)
+}
+
+// 处理代理信息设置请求
+func handleProxyInfo(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodPost {
+		http.Error(w, "仅支持POST请求", http.StatusMethodNotAllowed)
+		return
+	}
+
+	// 解析表单数据
+	if err := r.ParseForm(); err != nil {
+		http.Error(w, "解析表单数据失败", http.StatusBadRequest)
+		return
+	}
+
+	urlParam := r.FormValue("url")
+	cookieParam := r.FormValue("cookie")
+
+	if urlParam == "" {
+		http.Error(w, "url参数不能为空", http.StatusBadRequest)
+		return
+	}
+
+	// 存储代理信息到全局变量
+	proxyInfoLock.Lock()
+	proxyInfo.URL = urlParam
+	proxyInfo.Cookie = cookieParam
+	proxyInfoLock.Unlock()
+
+	log.Printf("更新代理信息: URL=%s, Cookie=%s", urlParam, cookieParam)
+
+	w.Header().Set("Content-Type", "application/json")
+	fmt.Fprintf(w, `{"status": "success", "message": "代理信息已更新"}`)
 }
 
 // 获取代理信息请求
