@@ -29,6 +29,8 @@ type Config struct {
 	Port int `ini:"port"`
 }
 
+var stdoutLogger *log.Logger
+
 func main() {
 	// 读取配置文件
 	config, err := loadConfig("config.ini")
@@ -53,8 +55,8 @@ func main() {
 		Addr:    fmt.Sprintf(":%d", port),
 		Handler: mux,
 	}
-
-	log.Printf("VLC代理服务启动，监听端口: %d", port)
+	stdoutLogger = log.New(os.Stdout, "", log.LstdFlags)
+	stdoutLogger.Printf("VLC代理服务启动，监听端口: %d", port)
 	log.Fatal(server.ListenAndServe())
 }
 
@@ -69,7 +71,7 @@ func loadConfig(filename string) (*Config, error) {
 		if err != nil {
 			return nil, fmt.Errorf("创建默认配置文件失败: %v", err)
 		}
-		log.Printf("已创建默认配置文件: %s", filename)
+		stdoutLogger.Printf("已创建默认配置文件: %s", filename)
 	}
 
 	// 加载配置文件
@@ -124,7 +126,7 @@ func handleProxyInfo(w http.ResponseWriter, r *http.Request) {
 	proxyInfo.Cookie = requestData.Cookie
 	proxyInfoLock.Unlock()
 
-	log.Printf("更新代理信息: URL=%s, Cookie=%s", requestData.URL, requestData.Cookie)
+	stdoutLogger.Printf("更新代理信息: URL=%s, Cookie=%s", requestData.URL, requestData.Cookie)
 
 	w.Header().Set("Content-Type", "application/json")
 	fmt.Fprintf(w, `{"code": 0, "status": "success", "message": "代理信息已更新", "data": true}`)
@@ -192,7 +194,7 @@ func handleVLCRequest(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// 打印请求信息
-	log.Printf("代理请求: %s %s", r.Method, targetFullURL.String())
+	stdoutLogger.Printf("代理请求: %s %s", r.Method, targetFullURL.String())
 
 	client := &http.Client{}
 	resp, err := client.Do(proxyReq)
