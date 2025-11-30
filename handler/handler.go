@@ -46,7 +46,11 @@ func HandleProxyInfo(w http.ResponseWriter, r *http.Request) {
 		Message: "代理信息已更新",
 		Data:    true,
 	}
-	json.NewEncoder(w).Encode(response)
+	if err := json.NewEncoder(w).Encode(response); err != nil {
+		logger.StdoutLogger.Printf("序列化响应内容失败: %v", err)
+		http.Error(w, "内部服务器错误", http.StatusInternalServerError)
+		return
+	}
 }
 
 // HandleProxyGet 获取代理信息请求
@@ -59,7 +63,11 @@ func HandleProxyGet(w http.ResponseWriter, r *http.Request) {
 	info := store.GetProxyInfo()
 
 	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(info)
+	if err := json.NewEncoder(w).Encode(info); err != nil {
+		logger.StdoutLogger.Printf("序列化响应内容失败: %v", err)
+		http.Error(w, "内部服务器错误", http.StatusInternalServerError)
+		return
+	}
 }
 
 // HandleVLCRequest 处理VLC请求
@@ -115,7 +123,12 @@ func HandleVLCRequest(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, fmt.Sprintf("发送请求失败: %v", err), http.StatusInternalServerError)
 		return
 	}
-	defer resp.Body.Close()
+
+	defer func() {
+		if err := resp.Body.Close(); err != nil {
+			logger.StdoutLogger.Printf("关闭响应体失败: %v", err)
+		}
+	}()
 
 	for name, values := range resp.Header {
 		for _, value := range values {
