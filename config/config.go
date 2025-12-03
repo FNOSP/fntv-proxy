@@ -2,6 +2,7 @@ package config
 
 import (
 	"fmt"
+	"fn-tv-vlc-convert-url/logger"
 	"log"
 	"os"
 
@@ -23,7 +24,7 @@ func LoadConfig(filename string) (*Config, error) {
 		if err != nil {
 			return nil, fmt.Errorf("创建默认配置文件失败: %v", err)
 		}
-		log.Printf("已创建默认配置文件: %s", filename)
+		logger.StdoutLogger.Printf("已创建默认配置文件: %s", filename)
 	}
 
 	// 加载配置文件
