@@ -2,33 +2,32 @@ package main
 
 import (
 	"fmt"
-	"log"
-	"net/http"
-
 	"fntv-proxy/config"
 	"fntv-proxy/handler"
 	"fntv-proxy/logger"
+	"log"
+	"net/http"
 )
 
 func main() {
-	// 初始化日志
+	// Initialize logger
 	logger.Init()
 
-	// 读取配置文件
+	// Load config file
 	conf, err := config.LoadConfig("config.ini")
 	if err != nil {
-		log.Fatalf("无法读取配置文件: %v", err)
+		log.Fatalf("Failed to load config file: %v", err)
 	}
 
-	// 启动HTTP服务器
+	// Start HTTP server
 	port := conf.Port
 	if port == 0 {
-		port = 1999 // 默认端口
+		port = 1999 // Default port
 	}
 
 	mux := http.NewServeMux()
 
-	// 设置路由
+	// Setup routes
 	mux.HandleFunc("/proxy/info", handler.HandleProxyInfo)
 	mux.HandleFunc("/proxyGet", handler.HandleProxyGet)
 	mux.HandleFunc("/", handler.HandleVLCRequest)
@@ -38,6 +37,6 @@ func main() {
 		Handler: mux,
 	}
 
-	logger.StdoutLogger.Printf("VLC代理服务启动，监听端口: %d", port)
+	logger.StdoutLogger.Printf("VLC Proxy service started, listening on port: %d", port)
 	log.Fatal(server.ListenAndServe())
 }

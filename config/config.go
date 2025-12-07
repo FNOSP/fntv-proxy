@@ -2,7 +2,7 @@ package config
 
 import (
 	"fmt"
-	"fn-tv-vlc-convert-url/logger"
+	"fntv-proxy/logger"
 	"log"
 	"os"
 
@@ -13,21 +13,21 @@ type Config struct {
 	Port int `ini:"port"`
 }
 
-// LoadConfig 加载配置文件
+// LoadConfig loads the configuration file
 func LoadConfig(filename string) (*Config, error) {
 	config := &Config{}
 
-	// 检查配置文件是否存在
+	// Check if config file exists
 	if _, err := os.Stat(filename); os.IsNotExist(err) {
-		// 创建默认配置文件
+		// Create default config file
 		err = createDefaultConfig(filename)
 		if err != nil {
-			return nil, fmt.Errorf("创建默认配置文件失败: %v", err)
+			return nil, fmt.Errorf("failed to create default config file: %v", err)
 		}
-		logger.StdoutLogger.Printf("已创建默认配置文件: %s", filename)
+		logger.StdoutLogger.Printf("Created default config file: %s", filename)
 	}
 
-	// 加载配置文件
+	// Load config file
 	cfg, err := ini.Load(filename)
 	if err != nil {
 		return nil, err
@@ -35,7 +35,7 @@ func LoadConfig(filename string) (*Config, error) {
 
 	port, err := cfg.Section("server").Key("port").Int()
 	if err != nil {
-		log.Printf("配置文件中端口格式不正确，使用默认端口1999")
+		log.Printf("Invalid port format in config file, using default port 1999")
 		port = 1999
 	}
 
@@ -43,7 +43,7 @@ func LoadConfig(filename string) (*Config, error) {
 	return config, nil
 }
 
-// createDefaultConfig 创建默认配置文件
+// createDefaultConfig creates a default configuration file
 func createDefaultConfig(filename string) error {
 	cfg := ini.Empty()
 	cfg.Section("server").Key("port").SetValue("1999")

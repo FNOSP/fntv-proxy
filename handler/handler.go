@@ -14,49 +14,49 @@ import (
 	"fntv-proxy/store"
 )
 
-// HandleProxyInfo 处理代理信息设置请求
+// HandleProxyInfo handles proxy info setting request
 func HandleProxyInfo(w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodPost {
-		http.Error(w, "仅支持POST请求", http.StatusMethodNotAllowed)
+		http.Error(w, "Only POST method is allowed", http.StatusMethodNotAllowed)
 		return
 	}
 
-	// 解析请求体中的JSON数据
+	// Parse JSON data from request body
 	var requestData model.ProxyInfoRequest
 
 	if err := json.NewDecoder(r.Body).Decode(&requestData); err != nil {
-		http.Error(w, "解析请求体失败: "+err.Error(), http.StatusBadRequest)
+		http.Error(w, "Failed to parse request body: "+err.Error(), http.StatusBadRequest)
 		return
 	}
 
 	if requestData.URL == "" {
-		http.Error(w, "url参数不能为空", http.StatusBadRequest)
+		http.Error(w, "url parameter cannot be empty", http.StatusBadRequest)
 		return
 	}
 
-	// 存储代理信息到全局变量
+	// Store proxy info to global variable
 	store.SetProxyInfo(requestData.URL, requestData.Cookie)
 
-	logger.StdoutLogger.Printf("更新代理信息: URL=%s, Cookie=%s", requestData.URL, requestData.Cookie)
+	logger.StdoutLogger.Printf("Updated proxy info: URL=%s, Cookie=%s", requestData.URL, requestData.Cookie)
 
 	w.Header().Set("Content-Type", "application/json")
 	response := model.CommonResponse{
 		Code:    0,
 		Status:  "success",
-		Message: "代理信息已更新",
+		Message: "Proxy info updated",
 		Data:    true,
 	}
 	if err := json.NewEncoder(w).Encode(response); err != nil {
-		logger.StdoutLogger.Printf("序列化响应内容失败: %v", err)
-		http.Error(w, "内部服务器错误", http.StatusInternalServerError)
+		logger.StdoutLogger.Printf("Failed to serialize response: %v", err)
+		http.Error(w, "Internal Server Error", http.StatusInternalServerError)
 		return
 	}
 }
 
-// HandleProxyGet 获取代理信息请求
+// HandleProxyGet handles get proxy info request
 func HandleProxyGet(w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodGet {
-		http.Error(w, "仅支持GET请求", http.StatusMethodNotAllowed)
+		http.Error(w, "Only GET method is allowed", http.StatusMethodNotAllowed)
 		return
 	}
 
@@ -64,38 +64,38 @@ func HandleProxyGet(w http.ResponseWriter, r *http.Request) {
 
 	w.Header().Set("Content-Type", "application/json")
 	if err := json.NewEncoder(w).Encode(info); err != nil {
-		logger.StdoutLogger.Printf("序列化响应内容失败: %v", err)
-		http.Error(w, "内部服务器错误", http.StatusInternalServerError)
+		logger.StdoutLogger.Printf("Failed to serialize response: %v", err)
+		http.Error(w, "Internal Server Error", http.StatusInternalServerError)
 		return
 	}
 }
 
-// HandleVLCRequest 处理VLC请求
+// HandleVLCRequest handles VLC requests
 func HandleVLCRequest(w http.ResponseWriter, r *http.Request) {
-	// 读取代理信息
+	// Read proxy info
 	info := store.GetProxyInfo()
 	targetURL := info.URL
 	cookie := info.Cookie
 
 	if targetURL == "" {
-		http.Error(w, "未设置代理信息，请先调用/proxyInfo接口", http.StatusBadRequest)
+		http.Error(w, "Proxy info not set, please call /proxyInfo interface first", http.StatusBadRequest)
 		return
 	}
 
 	requestPath := r.URL.Path
 	targetFullURL, err := buildTargetURL(targetURL, requestPath)
 	if err != nil {
-		http.Error(w, fmt.Sprintf("构建目标URL失败: %v", err), http.StatusBadRequest)
+		http.Error(w, fmt.Sprintf("Failed to build target URL: %v", err), http.StatusBadRequest)
 		return
 	}
 
 	proxyReq, err := http.NewRequest(r.Method, targetFullURL.String(), r.Body)
 	if err != nil {
-		http.Error(w, fmt.Sprintf("创建代理请求失败: %v", err), http.StatusInternalServerError)
+		http.Error(w, fmt.Sprintf("Failed to create proxy request: %v", err), http.StatusInternalServerError)
 		return
 	}
 
-	// 复制原始请求头
+	// Copy original request headers
 	for name, values := range r.Header {
 		if strings.EqualFold(name, "Host") {
 			continue
@@ -105,7 +105,7 @@ func HandleVLCRequest(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	// 添加Cookie
+	// Add Cookie
 	if cookie != "" {
 		proxyReq.Header.Set("Cookie", cookie)
 	}
@@ -114,19 +114,19 @@ func HandleVLCRequest(w http.ResponseWriter, r *http.Request) {
 		proxyReq.Header.Set("Range", "bytes=0-")
 	}
 
-	// 打印请求信息
-	logger.StdoutLogger.Printf("代理请求: %s %s", r.Method, targetFullURL.String())
+	// Log request info
+	logger.StdoutLogger.Printf("Proxy request: %s %s", r.Method, targetFullURL.String())
 
 	client := &http.Client{}
 	resp, err := client.Do(proxyReq)
 	if err != nil {
-		http.Error(w, fmt.Sprintf("发送请求失败: %v", err), http.StatusInternalServerError)
+		http.Error(w, fmt.Sprintf("Failed to send request: %v", err), http.StatusInternalServerError)
 		return
 	}
 
 	defer func() {
 		if err := resp.Body.Close(); err != nil {
-			logger.StdoutLogger.Printf("关闭响应体失败: %v", err)
+			logger.StdoutLogger.Printf("Failed to close response body: %v", err)
 		}
 	}()
 
@@ -139,11 +139,11 @@ func HandleVLCRequest(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(resp.StatusCode)
 
 	if _, err := io.Copy(w, resp.Body); err != nil {
-		log.Printf("复制响应体失败: %v", err)
+		log.Printf("Failed to copy response body: %v", err)
 	}
 }
 
-// buildTargetURL 构建目标URL
+// buildTargetURL builds the target URL
 func buildTargetURL(baseURL, path string) (*url.URL, error) {
 	u, err := url.Parse(baseURL)
 	if err != nil {

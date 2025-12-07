@@ -11,7 +11,7 @@ var (
 	proxyInfoLock sync.RWMutex
 )
 
-// SetProxyInfo 更新代理信息
+// SetProxyInfo updates proxy info
 func SetProxyInfo(url, cookie string) {
 	proxyInfoLock.Lock()
 	defer proxyInfoLock.Unlock()
@@ -19,7 +19,7 @@ func SetProxyInfo(url, cookie string) {
 	proxyInfo.Cookie = cookie
 }
 
-// GetProxyInfo 获取代理信息
+// GetProxyInfo gets proxy info
 func GetProxyInfo() model.ProxyInfo {
 	proxyInfoLock.RLock()
 	defer proxyInfoLock.RUnlock()
