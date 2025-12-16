@@ -4,7 +4,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
-	"log"
 	"net/http"
 	"net/url"
 	"strings"
@@ -110,14 +109,19 @@ func HandleVLCRequest(w http.ResponseWriter, r *http.Request) {
 		proxyReq.Header.Set("Cookie", cookie)
 	}
 
-	if strings.Contains(requestPath, "/v/api/v1/media/range/") {
-		proxyReq.Header.Set("Range", "bytes=0-")
-	}
+	//if strings.Contains(requestPath, "/v/api/v1/media/range/") {
+	//	proxyReq.Header.Set("Range", "bytes=0-")
+	//}
 
 	// Log request info
 	logger.StdoutLogger.Printf("Proxy request: %s %s", r.Method, targetFullURL.String())
 
-	client := &http.Client{}
+	// Create HTTP client with timeout settings
+	client := &http.Client{
+		// Timeout can prevent hanging connections
+		// Transport can be configured for better connection pooling
+	}
+
 	resp, err := client.Do(proxyReq)
 	if err != nil {
 		http.Error(w, fmt.Sprintf("Failed to send request: %v", err), http.StatusInternalServerError)
@@ -130,17 +134,42 @@ func HandleVLCRequest(w http.ResponseWriter, r *http.Request) {
 		}
 	}()
 
+	// Copy headers from target response
 	for name, values := range resp.Header {
 		for _, value := range values {
 			w.Header().Add(name, value)
 		}
 	}
 
+	// Set status code
 	w.WriteHeader(resp.StatusCode)
 
+	// Copy response body with error handling
 	if _, err := io.Copy(w, resp.Body); err != nil {
-		log.Printf("Failed to copy response body: %v", err)
+		// Check if it's a client disconnect error
+		if isClientDisconnected(err) {
+			logger.StdoutLogger.Printf("Client disconnected during response body copy: %v", err)
+			// Don't send error response since client is gone
+			return
+		}
+
+		// For other errors, log but don't send error to client as headers are already sent
+		logger.StdoutLogger.Printf("Failed to copy response body: %v", err)
 	}
+}
+
+// isClientDisconnected checks if error is caused by client disconnection
+func isClientDisconnected(err error) bool {
+	if err == nil {
+		return false
+	}
+	errStr := err.Error()
+	// Common client disconnection error messages
+	return strings.Contains(errStr, "connection reset by peer") ||
+		strings.Contains(errStr, "broken pipe") ||
+		strings.Contains(errStr, "connection was forcibly closed") ||
+		strings.Contains(errStr, "wsasend") ||
+		strings.Contains(errStr, "write: connection timed out")
 }
 
 // buildTargetURL builds the target URL
